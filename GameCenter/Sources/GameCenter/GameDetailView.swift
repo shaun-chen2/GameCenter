@@ -56,12 +56,32 @@ struct GameDetailView: View {
                 // 主要操作区
                 HStack(spacing: 10) {
                     if isLaunching {
-                        HStack(spacing: 8) {
-                            ProgressView().controlSize(.small)
-                            Text("正在启动…").font(.subheadline).foregroundStyle(Color.gcText)
-                            Button("取消", role: .destructive) { model.cancelLaunch() }
+                        if model.isDownloadingWine {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 8) {
+                                    Text(model.wineDownloadLabel.isEmpty ? "正在下载依赖（Wine）…" : model.wineDownloadLabel)
+                                        .font(.subheadline).foregroundStyle(Color.gcText)
+                                    Spacer(minLength: 0)
+                                    Text("\(Int(model.wineDownloadProgress * 100))%")
+                                        .font(.subheadline.monospacedDigit())
+                                        .foregroundStyle(Color.gcAccent2)
+                                }
+                                ProgressView(value: model.wineDownloadProgress)
+                                    .tint(Color.gcAccent2)
+                                    .controlSize(.regular)
+                                HStack(spacing: 8) {
+                                    Button("取消", role: .destructive) { model.cancelLaunch() }
+                                }
+                            }
+                            .controlSize(.large)
+                        } else {
+                            HStack(spacing: 8) {
+                                ProgressView().controlSize(.small)
+                                Text("正在启动…").font(.subheadline).foregroundStyle(Color.gcText)
+                                Button("取消", role: .destructive) { model.cancelLaunch() }
+                            }
+                            .controlSize(.large)
                         }
-                        .controlSize(.large)
                     } else if isRunning {
                         Button { model.stop(game) } label: {
                             Label("停止 ■", systemImage: "stop.fill")

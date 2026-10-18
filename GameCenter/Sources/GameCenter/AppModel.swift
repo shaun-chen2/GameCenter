@@ -42,6 +42,11 @@ final class AppModel {
     private var launchTask: Task<Void, Never>?
     var running: [String: RunningInstance] = [:]
 
+    // Wine 自动下载进度（启动 .exe 且无 wine 时）
+    var isDownloadingWine = false
+    var wineDownloadProgress: Double = 0
+    var wineDownloadLabel: String = ""
+
     func reload() {
         games = GameStore.shared.load()
         if let sel = selected, let refreshed = games.first(where: { $0.id == sel.id }) {
@@ -103,13 +108,21 @@ final class AppModel {
     func launch(_ game: GameRecord) {
         guard launchingId == nil else { return }
         launchingId = game.id
+        isDownloadingWine = false
+        wineDownloadProgress = 0
+        wineDownloadLabel = ""
         launchTask = Task { @MainActor in
             do {
                 // 给一个短暂的「正在启动」窗口，模仿 Steam，可在此期间取消
                 try await Task.sleep(nanoseconds: 600_000_000)
-                if Task.isCancelled { launchingId = nil; return }
-                let inst = try await GameLauncher.start(game)
+                if Task.isCancelled { resetWineDownload(); launchingId = nil; return }
+                let inst = try await GameLauncher.start(game) { frac, label in
+                    self.wineDownloadProgress = frac
+                    self.wineDownloadLabel = label
+                    self.isDownloadingWine = frac > 0
+                }
                 running[game.id] = inst
+                resetWineDownload()
                 launchingId = nil
                 observe(inst)
             } catch {
@@ -117,9 +130,16 @@ final class AppModel {
                     errorMessage = error.localizedDescription
                     showError = true
                 }
+                resetWineDownload()
                 launchingId = nil
             }
         }
+    }
+
+    private func resetWineDownload() {
+        isDownloadingWine = false
+        wineDownloadProgress = 0
+        wineDownloadLabel = ""
     }
 
     /// 取消正在进行的启动

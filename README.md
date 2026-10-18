@@ -14,6 +14,8 @@
   Steam titles are auto-detected by App ID and launched via `steam://run/<id>` / `steam.exe -applaunch` (Steam client required).
 - **导入方式**：面板导入 + 拖拽导入（`macOS` 版支持把文件拖进窗口）。
   Import via dialog or drag-and-drop (drag supported on macOS).
+- **`.exe` 自动装 Wine**：macOS 版启动 `.exe` 时若未检测到 Wine / CrossOver，会自动下载 Gcenx 预编译 Wine（GitHub Releases）并解压到本地 `~/Library/Application Support/GameCenter/wine`，启动界面显示「正在下载依赖（Wine）… X%」进度条，无需手动 `brew install`。
+  **Auto Wine for `.exe`**: on macOS, if Wine / CrossOver is missing when launching an `.exe`, GameCenter auto-downloads a prebuilt Gcenx Wine (from GitHub Releases) and extracts it to `~/Library/Application Support/GameCenter/wine`, showing a "Downloading dependency (Wine)… X%" progress bar — no manual `brew install` needed.
 - **深色游戏风 UI**：封面网格 / 列表双视图、英雄详情卡、运行中状态指示。
   Dark game-launcher UI: cover-grid / list views, hero detail card, running-status indicator.
 - **分组与搜索**：按类型 / 名称首字母分组，实时搜索。
@@ -43,13 +45,14 @@ Requires Xcode Command Line Tools only (full Xcode not needed).
 ```bash
 cd GameCenter
 swift build -c release --disable-sandbox
-# 产物：.build/release/GameCenter
+# 产物：.build/out/Products/Release/GameCenter
+# (在沙箱/CI 环境下路径含 /out/Products；纯 CLT 下为 .build/release/GameCenter)
 ```
 
 打包为 `.app` / Package into `.app`:
 
 ```bash
-cp .build/release/GameCenter GameCenter.app/Contents/MacOS/GameCenter
+cp .build/out/Products/Release/GameCenter GameCenter.app/Contents/MacOS/GameCenter
 # 或生成 DMG： / or build a DMG:
 ./make-dmg.sh
 ```
