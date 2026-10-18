@@ -123,26 +123,11 @@ final class GameLauncher {
     static func downloadWine(from url: URL, to dest: URL, progress: (@MainActor (Double) -> Void)? = nil) async throws {
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             let delegate = WineDownloadDelegate(
+                dest: dest,
                 onProgress: { frac in Task { @MainActor in progress?(frac) } },
-                onComplete: { result in
-                    switch result {
-                    case .success(let tmpURL):
-                        do {
-                            if FileManager.default.fileExists(atPath: dest.path) {
-                                try FileManager.default.removeItem(at: dest)
-                            }
-                            try FileManager.default.moveItem(at: tmpURL, to: dest)
-                            cont.resume()
-                        } catch {
-                            cont.resume(throwing: error)
-                        }
-                    case .failure(let err):
-                        cont.resume(throwing: err)
-                    }
-                }
+                onComplete: { result in cont.resume(with: result) }
             )
             let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-            delegate.session = session
             session.downloadTask(with: url).resume()
         }
     }
@@ -218,14 +203,17 @@ final class GameLauncher {
 }
 
 /// 下载进度 / 完成委托（在后台队列回调，仅通过主线程桥接更新 UI）。
+/// 注意：URLSession 会在 didFinishDownloadingTo 返回后删除临时文件，因此必须在该方法内立即移动到目标路径。
 final class WineDownloadDelegate: NSObject, @unchecked Sendable, URLSessionDownloadDelegate {
+    private let dest: URL
     private let onProgress: (Double) -> Void
-    private let onComplete: (Result<URL, Error>) -> Void
-    private var finishedURL: URL?
-    var session: URLSession?
+    private let onComplete: (Result<Void, Error>) -> Void
+    private var completed = false
 
-    init(onProgress: @escaping (Double) -> Void,
-         onComplete: @escaping (Result<URL, Error>) -> Void) {
+    init(dest: URL,
+         onProgress: @escaping (Double) -> Void,
+         onComplete: @escaping (Result<Void, Error>) -> Void) {
+        self.dest = dest
         self.onProgress = onProgress
         self.onComplete = onComplete
     }
@@ -240,20 +228,30 @@ final class WineDownloadDelegate: NSObject, @unchecked Sendable, URLSessionDownl
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
                     didFinishDownloadingTo location: URL) {
-        finishedURL = location
+        do {
+            let fm = FileManager.default
+            // 确保目标父目录存在；若目标文件已存在则先删除（避免重复下载时失败）
+            try fm.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
+            if fm.fileExists(atPath: dest.path) {
+                try fm.removeItem(at: dest)
+            }
+            try fm.moveItem(at: location, to: dest)
+            complete(.success(()))
+        } catch {
+            complete(.failure(error))
+        }
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         defer { session.invalidateAndCancel() }
         if let error {
-            onComplete(.failure(error))
-            return
+            complete(.failure(error))
         }
-        guard let loc = finishedURL else {
-            onComplete(.failure(NSError(domain: "GameLauncher", code: 0,
-                userInfo: [NSLocalizedDescriptionKey: "下载完成但未找到文件。"])))
-            return
-        }
-        onComplete(.success(loc))
+    }
+
+    private func complete(_ result: Result<Void, Error>) {
+        guard !completed else { return }
+        completed = true
+        onComplete(result)
     }
 }
