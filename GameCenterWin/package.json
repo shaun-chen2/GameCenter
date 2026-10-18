@@ -1,0 +1,34 @@
+{
+  "name": "gamecenter-win",
+  "version": "1.0.0",
+  "description": "GameCenter for Windows - 管理并启动 exe/jar/快捷方式/Steam 游戏",
+  "main": "main.js",
+  "author": "chenhehe",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "asar": false,
+    "appId": "com.example.gamecenter",
+    "productName": "GameCenter",
+    "win": {
+      "target": [
+        { "target": "portable", "arch": "x64" }
+      ]
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "renderer.js",
+      "styles.css"
+    ]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}

@@ -1,0 +1,84 @@
+:root {
+  --bg: #0b0d12;
+  --side: #11141c;
+  --card: #181c28;
+  --card-hover: #1f2533;
+  --line: #262c3a;
+  --text: #eef1f8;
+  --muted: #8b93a7;
+  --accent: #7c5cff;
+  --accent2: #22d3ee;
+  --green: #43d17a;
+  --red: #ff5d5d;
+  --radius-card: 14px;
+  --radius-btn: 10px;
+  --radius-cover: 12px;
+  --shadow-card: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+.app { display: flex; height: 100vh; }
+
+/* ===== 侧栏 ===== */
+.sidebar { width: 300px; background: var(--side); border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+.topbar { padding: 14px; }
+.btn { border: 1px solid var(--line); background: var(--card); color: var(--text); padding: 8px 12px; border-radius: var(--radius-btn); cursor: pointer; font-size: 13px; transition: border-color .15s, background .15s, transform .05s; }
+.btn:hover { border-color: var(--accent); background: var(--card-hover); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); border-color: var(--accent); width: 100%; font-weight: 600; color: #fff; }
+.btn.primary:hover { background: #8d70ff; border-color: #8d70ff; }
+.btn.small { padding: 6px 12px; font-size: 12px; }
+.btn.danger { border-color: var(--red); color: var(--red); }
+.btn.danger:hover { background: rgba(255, 93, 93, 0.12); }
+.btn[disabled] { opacity: .55; cursor: default; }
+.search { margin: 0 14px 10px; padding: 9px 12px; border-radius: var(--radius-btn); border: 1px solid var(--line); background: var(--card); color: var(--text); outline: none; }
+.search:focus { border-color: var(--accent); }
+.group-row { display: flex; align-items: center; gap: 8px; padding: 0 14px 10px; }
+.group-label { color: var(--muted); font-size: 12px; }
+#groupBy { flex: 1; background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: var(--radius-btn); padding: 6px; outline: none; }
+.view-toggle { display: flex; border: 1px solid var(--line); border-radius: var(--radius-btn); overflow: hidden; }
+.view-toggle button { background: var(--card); color: var(--muted); border: none; padding: 6px 9px; font-size: 12px; cursor: pointer; }
+.view-toggle button.active { background: var(--accent); color: #fff; }
+
+/* ===== 列表 ===== */
+.list { flex: 1; overflow-y: auto; padding: 0 8px 14px; }
+.section-title { color: var(--muted); font-size: 11px; text-transform: uppercase; padding: 10px 6px 4px; letter-spacing: .5px; }
+.item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius-btn); cursor: pointer; border: 1px solid transparent; }
+.item:hover { background: var(--card); }
+.item.active { background: var(--card); border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.item .dot.run { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.item .name { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item .type { color: var(--muted); font-size: 11px; }
+
+/* ===== 网格 ===== */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; padding: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-card); padding: 10px; cursor: pointer; transition: transform .12s, border-color .15s, box-shadow .15s; }
+.card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 10px 24px rgba(124, 92, 255, 0.25); }
+.card .cover { width: 100%; aspect-ratio: 3 / 4; border-radius: var(--radius-cover); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.4); position: relative; overflow: hidden; }
+.card .cover .run { position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+.card .row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.card .row .name { flex: 1; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .type { color: var(--muted); font-size: 11px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ===== 通用徽章 ===== */
+.badge { display: inline-block; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--muted); font-size: 12px; margin-right: 6px; }
+.badge.running { color: var(--green); background: rgba(67, 209, 122, 0.14); }
+
+/* ===== 详情区 ===== */
+.detail { flex: 1; padding: 28px; overflow-y: auto; }
+.empty { color: var(--muted); margin-top: 40px; text-align: center; }
+.detail h1 { margin: 0 0 4px; font-size: 24px; }
+
+.hero { display: flex; gap: 22px; padding: 22px; border-radius: var(--radius-card); background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-card); position: relative; overflow: hidden; margin-bottom: 22px; }
+.hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(124,92,255,.28), rgba(34,211,238,.12)); opacity: .8; pointer-events: none; }
+.hero .hero-cover { width: 150px; height: 200px; flex: none; border-radius: var(--radius-cover); display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 700; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.45); position: relative; z-index: 1; box-shadow: 0 10px 24px rgba(124,92,255,.3); }
+.hero .hero-info { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; }
+.hero .hero-info h1 { margin: 0; font-size: 26px; }
+.hero .hero-meta { color: var(--muted); font-size: 13px; }
+
+.row { display: flex; gap: 10px; margin: 18px 0; flex-wrap: wrap; }
+.meta { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
+.meta div { font-size: 12px; color: var(--muted); margin: 6px 0; word-break: break-all; }
+.meta b { color: var(--text); }
+.status { font-size: 12px; color: var(--muted); margin-top: 6px; }

@@ -1,0 +1,15 @@
+# WorkBuddy 项目数据（含记忆/状态，不入库）
+.workbuddy/
+
+# Swift 构建产物
+GameCenter/.build/
+GameCenter/GameCenter.app/
+GameCenter/build/
+
+# Node / Electron
+GameCenterWin/node_modules/
+GameCenterWin/dist/win-unpacked/
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db

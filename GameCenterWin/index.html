@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
+  <title>GameCenter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="topbar">
+        <button id="importBtn" class="btn primary">＋ 导入游戏</button>
+      </div>
+      <input id="search" class="search" type="text" placeholder="搜索游戏…" />
+      <div class="group-row">
+        <span class="group-label">分组</span>
+        <select id="groupBy">
+          <option value="none">无</option>
+          <option value="type">按类型</option>
+          <option value="name">按名称</option>
+        </select>
+        <div class="view-toggle" id="viewToggle">
+          <button data-mode="list" class="active" title="列表视图">列表</button>
+          <button data-mode="grid" title="网格视图">网格</button>
+        </div>
+      </div>
+      <div id="list" class="list"></div>
+    </aside>
+    <main class="detail" id="detail">
+      <div class="empty">从左侧选择或导入一个游戏</div>
+    </main>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>

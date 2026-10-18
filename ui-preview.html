@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GameCenter · 深色游戏启动器 UI 预览</title>
+<style>
+:root{
+  --bg:#0b0d12; --side:#11141c; --card:#181c28; --card-hover:#1f2533;
+  --line:#262c3a; --text:#eef1f8; --muted:#8b93a7;
+  --accent:#7c5cff; --accent2:#22d3ee; --green:#43d17a; --red:#ff5d5d;
+  --radius-card:14px; --radius-btn:10px; --radius-cover:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font-family:"Segoe UI",system-ui,-apple-system,"PingFang SC",sans-serif}
+.app{display:flex;height:100vh}
+/* Sidebar */
+.sidebar{width:320px;background:var(--side);border-right:1px solid var(--line);
+  display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:10px;padding:16px 16px 10px}
+.brand .logo{width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
+.brand h1{font-size:16px;margin:0;letter-spacing:.5px}
+.topbar{padding:6px 14px 12px}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--text);
+  padding:8px 12px;border-radius:var(--radius-btn);cursor:pointer;font-size:13px;transition:.15s}
+.btn:hover{border-color:var(--accent);background:var(--card-hover)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),#6a4bff);
+  border-color:transparent;width:100%;font-weight:600;color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.search{margin:0 14px 10px;padding:9px 11px;border-radius:var(--radius-btn);
+  border:1px solid var(--line);background:var(--card);color:var(--text)}
+.search:focus{outline:none;border-color:var(--accent)}
+.seg{display:flex;gap:6px;padding:0 14px 10px}
+.seg .group{flex:1;display:flex;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius-btn);overflow:hidden}
+.seg .group button{flex:1;border:none;background:transparent;color:var(--muted);
+  padding:7px 0;font-size:12px;cursor:pointer}
+.seg .group button.active{background:var(--accent);color:#fff}
+.list{flex:1;overflow-y:auto;padding:0 8px 14px}
+/* list rows */
+.item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-btn);
+  cursor:pointer;border:1px solid transparent}
+.item:hover{background:var(--card)}
+.item.active{background:var(--card);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.cover{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-weight:800;color:#fff;font-size:16px;flex:none}
+.item .meta{flex:1;min-width:0}
+.item .name{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .type{color:var(--muted);font-size:11px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.run{background:var(--green);box-shadow:0 0 6px var(--green)}
+.section-title{color:var(--muted);font-size:11px;text-transform:uppercase;
+  letter-spacing:.5px;padding:10px 6px 4px}
+/* grid cards (sidebar) */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:12px;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);
+  padding:8px;cursor:pointer;transition:.12s}
+.card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.card.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);
+  background:var(--card-hover)}
+.card .gcover{width:100%;aspect-ratio:3/4;border-radius:9px;display:flex;
+  align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;
+  position:relative;overflow:hidden}
+.card .gcover .gdot{position:absolute;top:6px;right:6px;width:9px;height:9px;
+  border-radius:50%}
+.card .gname{font-size:11px;font-weight:600;margin-top:6px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.card .gtype{color:var(--muted);font-size:10px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+/* Main detail */
+.detail{flex:1;overflow-y:auto;padding:28px}
+.empty{color:var(--muted);height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px}
+.empty .ico{font-size:46px;opacity:.5}
+.hero{display:flex;gap:22px;padding:22px;border-radius:var(--radius-card);
+  background:var(--card);border:1px solid var(--line);position:relative;overflow:hidden;margin-bottom:22px}
+.hero::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(124,92,255,.28),rgba(34,211,238,.12));opacity:.85;pointer-events:none}
+.hero-cover{width:150px;height:200px;flex:none;border-radius:var(--radius-cover);
+  display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:800;color:#fff;
+  position:relative;z-index:1;box-shadow:0 10px 24px rgba(124,92,255,.3)}
+.hero-info{position:relative;z-index:1;display:flex;flex-direction:column;gap:10px}
+.hero-info h2{margin:0;font-size:26px}
+.badge{display:inline-block;padding:3px 9px;border-radius:999px;background:var(--line);
+  color:var(--muted);font-size:12px;margin-right:6px}
+.badge.running{color:var(--green);background:rgba(67,209,122,.14)}
+.row{display:flex;gap:10px;margin:18px 0;flex-wrap:wrap}
+.btn.launch{background:linear-gradient(135deg,var(--accent),#6a4bff);border-color:transparent;color:#fff;font-weight:600}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.meta-block{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.meta-block div{font-size:12px;color:var(--muted);margin:6px 0;word-break:break-all}
+.meta-block b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">G</div><h1>GameCenter</h1></div>
+    <div class="topbar"><button class="btn primary">＋ 导入游戏</button></div>
+    <input class="search" placeholder="搜索游戏…" />
+    <div class="seg">
+      <div class="group" id="viewSeg">
+        <button data-v="list" class="active">列表</button>
+        <button data-v="grid">网格</button>
+      </div>
+      <div class="group" id="groupSeg">
+        <button data-g="none" class="active">无</button>
+        <button data-g="type">类型</button>
+        <button data-g="name">名称</button>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
+  </aside>
+  <main class="detail" id="detail"></main>
+</div>
+<script>
+const games=[
+  {id:1,name:"Euro Truck Simulator 2",type:"Steam",running:true,grad:["#7c5cff","#22d3ee"]},
+  {id:2,name:"Minecraft",type:"App",running:false,grad:["#43d17a","#22d3ee"]},
+  {id:3,name:"Stardew Valley",type:"Jar",running:false,grad:["#7c5cff","#ff5d5d"]},
+  {id:4,name:"Terraria",type:"Exe",running:false,grad:["#22d3ee","#43d17a"]},
+  {id:5,name:"RimWorld",type:"Steam",running:false,grad:["#ff5d5d","#7c5cff"]},
+  {id:6,name:"Hollow Knight",type:"App",running:false,grad:["#7c5cff","#43d17a"]}
+];
+let state={view:"list",group:"none",selected:null,search:""};
+const listEl=document.getElementById('list');
+const detailEl=document.getElementById('detail');
+const coverStyle=g=>`background:linear-gradient(135deg,${g.grad[0]},${g.grad[1]})`;
+const initial=n=>n.trim()[0].toUpperCase();
+const filteredGames=()=>{
+  const q=state.search.trim().toLowerCase();
+  return q?games.filter(g=>g.name.toLowerCase().includes(q)):games;
+};
+// 侧栏：列表 or 网格（始终随视图模式重绘）
+function renderLibrary(){
+  const gs=filteredGames();
+  if(state.view==="grid"){
+    listEl.className="list";
+    listEl.innerHTML=`<div class="grid">`+gs.map(g=>`
+      <div class="card ${state.selected===g.id?'active':''}" data-id="${g.id}">
+        <div class="gcover" style="${coverStyle(g)}">${initial(g.name)}
+          ${g.running?'<span class="gdot dot run"></span>':''}</div>
+        <div class="gname">${g.name}</div>
+        <div class="gtype">${g.type}</div>
+      </div>`).join('')+`</div>`;
+  }else{
+    listEl.className="list";
+    if(!gs.length){listEl.innerHTML='<div class="section-title">暂无游戏</div>';}
+    else if(state.group!=="none"){
+      const map={};
+      for(const g of gs){const k=(state.group==="type"?g.type:initial(g.name));(map[k]=map[k]||[]).push(g);}
+      listEl.innerHTML=Object.keys(map).sort().map(k=>
+        `<div class="section-title">${k}</div>`+map[k].map(g=>rowHTML(g)).join('')).join('');
+    }else{
+      listEl.innerHTML=gs.map(g=>rowHTML(g)).join('');
+    }
+  }
+  bindCards();
+}
+function rowHTML(g){
+  return `<div class="item ${state.selected===g.id?'active':''}" data-id="${g.id}">
+    <div class="cover" style="${coverStyle(g)}">${initial(g.name)}</div>
+    <div class="meta"><div class="name">${g.name}</div><div class="type">${g.type}</div></div>
+    <div class="dot ${g.running?'run':''}"></div></div>`;
+}
+// 右侧：详情 or 空状态
+function renderDetail(){
+  if(state.selected==null){
+    detailEl.innerHTML=`<div class="empty"><div class="ico">🎮</div>
+      <div>从左侧选择或导入一个游戏</div></div>`;return;
+  }
+  const g=games.find(x=>x.id===state.selected);
+  detailEl.innerHTML=`
+    <div class="hero">
+      <div class="hero-cover" style="${coverStyle(g)}">${initial(g.name)}</div>
+      <div class="hero-info">
+        <h2>${g.name}</h2>
+        <div><span class="badge">${g.type}</span>
+          ${g.running?'<span class="badge running">运行中</span>':''}</div>
+        <div class="row">
+          ${g.running?'<button class="btn danger">■ 停止</button>':'<button class="btn launch">▶ 启动</button>'}
+          <button class="btn">打开资源路径</button>
+          <button class="btn danger">移除</button>
+        </div>
+        <div class="meta-block">
+          <div><b>来源</b><br>steam://run/demo</div>
+          <div><b>资源路径</b><br>~/Library/Application Support/GameCenter/Games/${g.id}/</div>
+          <div><b>添加于</b><br>2026-10-18 15:00</div>
+        </div>
+      </div>
+    </div>`;
+}
+function bindCards(){
+  listEl.querySelectorAll('[data-id]').forEach(el=>{
+    el.onclick=()=>{
+      const id=+el.dataset.id;
+      state.selected=(state.selected===id)?null:id; // 再次点按取消选中
+      renderLibrary();renderDetail();
+    };
+  });
+}
+document.querySelector('.search').oninput=e=>{state.search=e.target.value;renderLibrary();};
+document.getElementById('viewSeg').onclick=e=>{
+  if(e.target.dataset.v){state.view=e.target.dataset.v;
+    [...e.currentTarget.children].forEach(b=>b.classList.toggle('active',b===e.target));
+    renderLibrary();}
+};
+document.getElementById('groupSeg').onclick=e=>{
+  if(e.target.dataset.g){state.group=e.target.dataset.g;
+    [...e.currentTarget.children].forEach(b=>b.classList.toggle('active',b===e.target));
+    if(state.view!=="grid")renderLibrary();}
+};
+renderLibrary();renderDetail();
+</script>
+</body>
+</html>
