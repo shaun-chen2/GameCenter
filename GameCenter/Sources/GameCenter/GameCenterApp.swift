@@ -15,4 +15,9 @@ struct GameCenterApp: App {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate {}
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// 关闭最后一个窗口即退出应用（macOS 版行为）
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return true
+    }
+}
