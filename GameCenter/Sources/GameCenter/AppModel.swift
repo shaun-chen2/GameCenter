@@ -47,6 +47,9 @@ final class AppModel {
     var wineDownloadProgress: Double = 0
     var wineDownloadLabel: String = ""
 
+    // 自定义图标：文件选择面板开关
+    var showIconPicker = false
+
     func reload() {
         games = GameStore.shared.load()
         if let sel = selected, let refreshed = games.first(where: { $0.id == sel.id }) {
@@ -178,6 +181,51 @@ final class AppModel {
         running.removeValue(forKey: game.id)
         if selected?.id == game.id { selected = nil }
         reload()
+    }
+
+    // MARK: - 自定义图标
+
+    /// 把一张图片设为某游戏的自定义图标（拷贝进资源库 Games/<id>/icon.<ext>）。
+    func setIcon(_ game: GameRecord, from url: URL) {
+        let ext = (url.pathExtension.isEmpty ? "png" : url.pathExtension).lowercased()
+        let dest = GameStore.shared.iconURL(for: game.id, ext: ext)
+        try? FileManager.default.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? FileManager.default.removeItem(at: dest)
+        try? FileManager.default.copyItem(at: url, to: dest)
+        saveIconPath(game.id, path: dest.path)
+    }
+
+    /// 移除某游戏的自定义图标。
+    func removeIcon(_ game: GameRecord) {
+        if let p = game.iconPath { try? FileManager.default.removeItem(at: URL(fileURLWithPath: p)) }
+        saveIconPath(game.id, path: nil)
+    }
+
+    /// 处理拖入的图片（仅接受图片文件），接受拖拽则返回 true，并在主线程设置图标。
+    func handleIconDrop(_ providers: [NSItemProvider], for game: GameRecord) -> Bool {
+        for p in providers {
+            guard p.hasItemConformingToTypeIdentifier("public.file-url") else { continue }
+            p.loadItem(forTypeIdentifier: "public.file-url", options: nil) { item, _ in
+                var url: URL?
+                if let data = item as? Data { url = URL(dataRepresentation: data, relativeTo: nil) }
+                else if let u = item as? URL { url = u }
+                guard let u = url else { return }
+                Task { @MainActor in
+                    if NSImage(contentsOf: u) != nil {
+                        self.setIcon(game, from: u)
+                    }
+                }
+            }
+            return true
+        }
+        return false
+    }
+
+    private func saveIconPath(_ id: String, path: String?) {
+        guard let i = games.firstIndex(where: { $0.id == id }) else { return }
+        games[i].iconPath = path
+        GameStore.shared.save(games)
+        if selected?.id == id { selected = games[i] }
     }
 
     static let shared = AppModel()

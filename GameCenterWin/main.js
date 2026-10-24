@@ -13,6 +13,8 @@ const STEAM_CANDIDATES = [
 
 // 运行中的进程（仅 exe/jar/shortcut 可追踪；Steam 由 Steam 自己管理）
 const running = new Map(); // gameId -> ChildProcess
+const ICON_DIR = path.join(app.getPath('userData'), 'icons');
+try { fs.mkdirSync(ICON_DIR, { recursive: true }); } catch (e) {}
 let mainWindow = null;
 
 function loadGames() {
@@ -177,6 +179,49 @@ ipcMain.handle('dialog:import', async () => {
 function notifyRunning() {
   if (mainWindow) mainWindow.webContents.send('app:running', Array.from(running.keys()));
 }
+
+// 选择图标文件
+ipcMain.handle('dialog:selectIcon', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: '选择图标',
+    properties: ['openFile'],
+    filters: [{ name: '图片', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'] }]
+  });
+  if (result.canceled || !result.filePaths.length) return null;
+  return result.filePaths[0];
+});
+
+// 把某游戏的图标设为指定图片（拷贝到 userData/icons/<id>.<ext>）
+function updateGame(rec) {
+  const games = loadGames();
+  const i = games.findIndex(g => g.id === rec.id);
+  if (i >= 0) games[i] = rec; else games.push(rec);
+  saveGames(games);
+}
+
+ipcMain.handle('app:setIcon', (event, game, srcPath) => {
+  try {
+    const ext = path.extname(srcPath) || '.png';
+    const dest = path.join(ICON_DIR, game.id + ext);
+    fs.copyFileSync(srcPath, dest);
+    const rec = { ...game, iconPath: dest };
+    updateGame(rec);
+    return { ok: true, game: rec };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+});
+
+ipcMain.handle('app:removeIcon', (event, game) => {
+  try {
+    if (game.iconPath) { try { fs.unlinkSync(game.iconPath); } catch (e) {} }
+    const rec = { ...game, iconPath: null };
+    updateGame(rec);
+    return { ok: true, game: rec };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({

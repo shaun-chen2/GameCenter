@@ -22,6 +22,22 @@ function coverInitial(name) {
   return (name.trim()[0] || '#').toUpperCase();
 }
 
+/// 自定义图标的 file:// 地址（无则返回 null，调用方回退到彩色占位）
+function iconSrc(g) {
+  if (g.iconPath) return 'file://' + g.iconPath.replace(/\\/g, '/');
+  return null;
+}
+
+/// 设置某游戏图标（按钮或拖拽共用），成功后更新列表并重渲染
+async function setIconFor(g, srcPath) {
+  const r = await window.api.setIcon(g, srcPath);
+  if (r.ok) {
+    const i = state.games.findIndex(x => x.id === g.id);
+    if (i >= 0) state.games[i] = r.game;
+    render();
+  }
+}
+
 function render() {
   const list = $('#list');
   list.innerHTML = '';
@@ -65,10 +81,19 @@ function sectionTitle(t) {
   return d;
 }
 
-/// 列表项（沿用原有逻辑，仅渲染，样式走新的 CSS 令牌）
+/// 列表项（含自定义小图标 / 彩色占位）
 function itemEl(g) {
   const d = document.createElement('div');
   d.className = 'item' + (g.id === state.selectedId ? ' active' : '');
+  const ico = document.createElement('span');
+  ico.className = 'ico';
+  const src = iconSrc(g);
+  if (src) {
+    ico.style.backgroundImage = `url("${src}")`;
+  } else {
+    ico.style.background = coverColor(g.name);
+    ico.textContent = coverInitial(g.name);
+  }
   const dot = document.createElement('span');
   dot.className = 'dot' + ((state.running.has(g.id) || state.steam.has(g.id)) ? ' run' : '');
   const name = document.createElement('span');
@@ -77,12 +102,12 @@ function itemEl(g) {
   const type = document.createElement('span');
   type.className = 'type';
   type.textContent = g.type;
-  d.append(dot, name, type);
+  d.append(ico, dot, name, type);
   d.onclick = () => { state.selectedId = g.id; render(); };
   return d;
 }
 
-/// 网格封面卡：彩色方块封面（首字母）+ 名称 + 类型 + 运行中绿点
+/// 网格封面卡：自定义封面图 / 彩色方块（首字母）+ 名称 + 类型 + 运行中绿点
 function cardEl(g) {
   const d = document.createElement('div');
   d.className = 'card';
@@ -90,13 +115,28 @@ function cardEl(g) {
 
   const cover = document.createElement('div');
   cover.className = 'cover';
-  cover.style.background = coverColor(g.name);
-  cover.textContent = coverInitial(g.name);
+  const src = iconSrc(g);
+  if (src) {
+    cover.style.backgroundImage = `url("${src}")`;
+    cover.style.backgroundSize = 'cover';
+    cover.style.backgroundPosition = 'center';
+    cover.textContent = '';
+  } else {
+    cover.style.background = coverColor(g.name);
+    cover.textContent = coverInitial(g.name);
+  }
   if (run) {
     const dot = document.createElement('span');
     dot.className = 'run';
     cover.appendChild(dot);
   }
+  cover.addEventListener('dragover', e => { e.preventDefault(); cover.classList.add('drop'); });
+  cover.addEventListener('dragleave', () => cover.classList.remove('drop'));
+  cover.addEventListener('drop', e => {
+    e.preventDefault(); cover.classList.remove('drop');
+    const f = e.dataTransfer.files[0];
+    if (f && f.path) setIconFor(g, f.path);
+  });
 
   const row = document.createElement('div');
   row.className = 'row';
@@ -119,9 +159,13 @@ function renderDetail() {
   const g = state.games.find(x => x.id === state.selectedId);
   if (!g) { el.innerHTML = '<div class="empty">从左侧选择或导入一个游戏</div>'; return; }
   const isRun = state.running.has(g.id) || state.steam.has(g.id);
+  const hsrc = iconSrc(g);
+  const heroCoverHtml = hsrc
+    ? `<div class="hero-cover" style="background-image:url('${hsrc}');background-size:cover;background-position:center"></div>`
+    : `<div class="hero-cover" style="background:${coverColor(g.name)}">${escapeHtml(coverInitial(g.name))}</div>`;
   el.innerHTML = `
     <div class="hero">
-      <div class="hero-cover" style="background:${coverColor(g.name)}">${escapeHtml(coverInitial(g.name))}</div>
+      ${heroCoverHtml}
       <div class="hero-info">
         <h1>${escapeHtml(g.name)}</h1>
         <div>
@@ -134,6 +178,8 @@ function renderDetail() {
             ? '<button class="btn small danger" id="stopBtn">停止</button>'
             : '<button class="btn small primary" id="launchBtn">启动</button>'}
           <button class="btn small" id="locBtn">打开所在位置</button>
+          <button class="btn small" id="iconBtn">设置图标</button>
+          ${g.iconPath ? '<button class="btn small" id="rmIconBtn">移除图标</button>' : ''}
           <button class="btn small danger" id="delBtn">移除</button>
         </div>
         <div class="status" id="status"></div>
@@ -168,6 +214,29 @@ function renderDetail() {
     render();
   };
   $('#locBtn').onclick = () => window.api.openLocation(g);
+  $('#iconBtn').onclick = async () => {
+    const p = await window.api.selectIcon();
+    if (p) await setIconFor(g, p);
+  };
+  const rmIconBtn = $('#rmIconBtn');
+  if (rmIconBtn) rmIconBtn.onclick = async () => {
+    const r = await window.api.removeIcon(g);
+    if (r.ok) {
+      const i = state.games.findIndex(x => x.id === g.id);
+      if (i >= 0) state.games[i] = r.game;
+      render();
+    }
+  };
+  const hc = el.querySelector('.hero-cover');
+  if (hc) {
+    hc.addEventListener('dragover', e => { e.preventDefault(); hc.classList.add('drop'); });
+    hc.addEventListener('dragleave', () => hc.classList.remove('drop'));
+    hc.addEventListener('drop', e => {
+      e.preventDefault(); hc.classList.remove('drop');
+      const f = e.dataTransfer.files[0];
+      if (f && f.path) setIconFor(g, f.path);
+    });
+  }
   $('#delBtn').onclick = async () => {
     state.games = state.games.filter(x => x.id !== g.id);
     await window.api.saveGames(state.games);

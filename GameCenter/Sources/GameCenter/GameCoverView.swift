@@ -1,26 +1,34 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
-/// 统一的封面组件：复用现有 `GameIcon`（从 libraryPath 取系统图标），
-/// 背后叠加霓虹渐变底，并加圆角与细描边，用于详情英雄区与网格卡片。
+/// 统一的封面组件：若游戏设置了自定义图标则直接展示，否则复用系统图标并叠加霓虹渐变底。
 struct GameCoverView: View {
     let game: GameRecord
 
+    var hasCustomIcon: Bool {
+        game.iconPath.map { NSImage(contentsOf: URL(fileURLWithPath: $0)) != nil } ?? false
+    }
+
     var body: some View {
-        GameIcon(path: game.libraryPath)
+        GameIcon(game: game)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .aspectRatio(3 / 4, contentMode: .fill)
-            .background(
-                LinearGradient(
-                    colors: [Color.gcAccent.opacity(0.28), Color.gcAccent2.opacity(0.14)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(Color.gcLine, lineWidth: 1)
             )
+            .background {
+                if hasCustomIcon {
+                    Color.clear
+                } else {
+                    LinearGradient(
+                        colors: [Color.gcAccent.opacity(0.28), Color.gcAccent2.opacity(0.14)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+            }
     }
 }
 
@@ -74,5 +82,8 @@ struct GameCoverCard: View {
         )
         .shadow(color: .black.opacity(isSelected ? 0.4 : 0.25), radius: isSelected ? 10 : 6, y: 3)
         .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+            model.handleIconDrop(providers, for: game)
+        }
     }
 }

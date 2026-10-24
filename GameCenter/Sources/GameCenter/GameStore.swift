@@ -7,6 +7,7 @@ struct GameRecord: Codable, Identifiable, Hashable {
     var sourcePath: String     // 原始导入位置（来源）
     var libraryPath: String    // 资源库中拷贝后的实际游戏路径（启动/图标使用）
     var steamAppId: String?    // 若检测为 Steam 游戏，记录 App ID，启动时走 steam://run/<id>
+    var iconPath: String?     // 自定义图标（绝对路径）；为空则用系统图标
     var addedAt: Date
 }
 
@@ -48,5 +49,10 @@ final class GameStore: Sendable {
     /// 某游戏在资源库中的文件夹（Games/<id>）
     func folderURL(for id: String) -> URL {
         gamesDir.appendingPathComponent(id, isDirectory: true)
+    }
+
+    /// 某游戏的自定义图标存放路径（Games/<id>/icon.<ext>）
+    func iconURL(for id: String, ext: String) -> URL {
+        folderURL(for: id).appendingPathComponent("icon").appendingPathExtension(ext)
     }
 }

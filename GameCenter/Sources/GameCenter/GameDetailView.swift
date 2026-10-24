@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct GameDetailView: View {
     var model: AppModel
@@ -21,6 +22,9 @@ struct GameDetailView: View {
                                 .stroke(Color.gcLine, lineWidth: 1)
                         )
                         .shadow(color: Color.gcAccent.opacity(0.25), radius: 14, y: 6)
+                        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                            model.handleIconDrop(providers, for: game)
+                        }
 
                     VStack(alignment: .leading, spacing: 10) {
                         Text(game.name)
@@ -112,6 +116,24 @@ struct GameDetailView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.large)
 
+                    Button { model.showIconPicker = true } label: {
+                        Label("设置图标", systemImage: "photo")
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                    }
+                    .tint(Color.gcAccent)
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+
+                    if game.iconPath != nil {
+                        Button { model.removeIcon(game) } label: {
+                            Label("移除图标", systemImage: "photo.badge.minus")
+                                .padding(.horizontal, 12).padding(.vertical, 10)
+                        }
+                        .tint(Color.gcMuted)
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    }
+
                     Spacer(minLength: 0)
 
                     Button("移除", role: .destructive) { model.remove(game) }
@@ -140,6 +162,13 @@ struct GameDetailView: View {
         }
         .frame(minWidth: 360, maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.gcBg)
+        .fileImporter(isPresented: Binding(get: { model.showIconPicker }, set: { model.showIconPicker = $0 }),
+                      allowedContentTypes: [.image]) { result in
+            if case .success(let url) = result {
+                model.setIcon(game, from: url)
+            }
+            model.showIconPicker = false
+        }
     }
 
     // MARK: - 小组件
@@ -182,7 +211,7 @@ struct GameRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            GameIcon(path: game.libraryPath)
+            GameIcon(game: game)
                 .frame(width: 36, height: 36)
                 .background(Color.gcLine.opacity(0.4))
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -202,16 +231,21 @@ struct GameRow: View {
             }
         }
         .padding(.vertical, 4)
+        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+            model.handleIconDrop(providers, for: game)
+        }
     }
 }
 
-/// 从 libraryPath 取系统图标的封面（沿用原实现，去掉固定尺寸以支持灵活布局）。
+/// 从 libraryPath 取系统图标，或游戏设置了自定义图标时优先用自定义图标。
 struct GameIcon: View {
-    let path: String
+    let game: GameRecord
 
     var body: some View {
         Group {
-            if let img = NSWorkspace.shared.icon(forFile: path) as NSImage? {
+            if let p = game.iconPath, let img = NSImage(contentsOf: URL(fileURLWithPath: p)) {
+                Image(nsImage: img).resizable().aspectRatio(contentMode: .fit)
+            } else if let img = NSWorkspace.shared.icon(forFile: game.libraryPath) as NSImage? {
                 Image(nsImage: img).resizable().aspectRatio(contentMode: .fit)
             } else {
                 Image(systemName: "gamecontroller")
